@@ -31,6 +31,12 @@ const narutoCharacters = {
   }
 };
 
+const processRequest = (reqMethod, method, callback) => {
+  if (reqMethod && method && reqMethod.toUpperCase() === method) {
+    callback();
+  }
+};
+
 const server = http.createServer((req, res) => {
   const host = req.headers.host;
   const baseUrl = `http://${host}/`;
@@ -44,22 +50,16 @@ const server = http.createServer((req, res) => {
     const parametro = partes[2] || 'naruto';
     const character = narutoCharacters[parametro.toLowerCase()];
 
-    switch (req.method.toUpperCase()) {
-      case 'GET':
-        if (character) {
-          res.writeHead(successCode, headerContent);
-          res.end(JSON.stringify(character));
-        } else {
-          res.writeHead(404, headerContent);
-          res.end(JSON.stringify({ error: 'Personagem nao encontrado' }));
-        }
-        return; 
-
-      default:
-        res.writeHead(405, headerContent);
-        res.end(JSON.stringify({ error: 'Metodo nao permitido' }));
-        return;
+    if (character) {
+      res.writeHead(successCode, headerContent);
+      processRequest(req.method, 'GET', () => {
+        res.end(JSON.stringify(character));
+      });
+    } else {
+      res.writeHead(404, headerContent);
+      res.end(JSON.stringify({ error: 'Personagem nao encontrado' }));
     }
+    return;
   }
 
   res.writeHead(successCode, headerContent);
