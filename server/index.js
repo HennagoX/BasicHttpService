@@ -1,8 +1,11 @@
 import http from 'http';
+import {get} from './methods/index.js'
 
 const port = 3000;
 const successCode = 200;
-const headerContent = { 'Content-Type': 'application/json' };
+const headerContent = {
+  'Content-Type': 'application/json; charset=utf-8'
+};
 
 const narutoCharacters = {
   naruto: {
@@ -31,18 +34,12 @@ const narutoCharacters = {
   }
 };
 
-const processRequest = (reqMethod, method, callback) => {
-  if (reqMethod && method && reqMethod.toUpperCase() === method) {
-    callback();
-  }
-};
 
 const server = http.createServer((req, res) => {
   const host = req.headers.host;
   const baseUrl = `http://${host}/`;
   const parseUrl = new URL(req.url, baseUrl);
   const caminho = parseUrl.pathname;
-
   const partes = caminho.split('/');
   const section = partes[1] || '';
 
@@ -50,20 +47,21 @@ const server = http.createServer((req, res) => {
     const parametro = partes[2] || 'naruto';
     const character = narutoCharacters[parametro.toLowerCase()];
 
-    if (character) {
-      res.writeHead(successCode, headerContent);
-      processRequest(req.method, 'GET', () => {
-        res.end(JSON.stringify(character));
-      });
-    } else {
+    if (!character) {
       res.writeHead(404, headerContent);
       res.end(JSON.stringify({ error: 'Personagem nao encontrado' }));
+      return;
     }
+   
+     get(successCode, headerContent, character, res);
+
     return;
   }
 
   res.writeHead(successCode, headerContent);
-  res.end(JSON.stringify('Bem-vindo! selecione um personagem de Naruto para comecar'));
+  res.end(
+    JSON.stringify('Bem-vindo! selecione um personagem de Naruto para comecar')
+  );
 });
 
 server.listen(port, () => {
